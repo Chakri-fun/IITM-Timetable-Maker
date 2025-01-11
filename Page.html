@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IITM Timetable Maker</title>
+    <style>
+        form {
+            width: 100%;
+        }
+
+        table {
+            width: 80%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>IITM Timetable Maker</h1>
+    <form id="scheduleForm">
+        <p>
+            1st Year:
+            <input type="checkbox" id="is1stYear" name="is1stYear" value="true">
+        </p>
+        <p>
+            Semester Start Date:
+            <input type="date" id="semStartDate" name="semStartDate">
+        </p>
+        <p>
+            Semester End Date:
+            <input type="date" id="semEndDate" name="semEndDate">
+        </p>
+
+        <h2>Courses</h2>
+        <table id="coursesTable">
+            <tr>
+                <th>Subject</th>
+                <th>Slot</th>
+                <th>Location</th>
+                <th>Action</th>
+            </tr>
+        </table>
+        <p><button type="button" onclick="addCourse()">Add Course</button></p>
+        <p><button type="button" onclick="submitForm()">Submit</button></p>
+    </form>
+
+    <script>
+        function addCourse() {
+            const table = document.getElementById('coursesTable');
+            const row = table.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            const cell3 = row.insertCell(2);
+            const cell4 = row.insertCell(3);
+            cell1.innerHTML = '<input type="text" name="subject[]">';
+            cell2.innerHTML = '<input type="text" name="slot[]">';
+            cell3.innerHTML = '<input type="text" name="location[]">';
+            cell4.innerHTML = '<button type="button" onclick="deleteCourse(this)">Delete</button>';
+        }
+
+        function deleteCourse(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+
+        function submitForm() {
+            const form = document.getElementById('scheduleForm');
+            const data = new FormData(form);
+            const is1stYear = data.get('is1stYear') === 'true';
+            const semStartDate = data.get('semStartDate');
+            const semEndDate = data.get('semEndDate');
+
+            const subjects = data.getAll('subject[]');
+            const slots = data.getAll('slot[]');
+            const locations = data.getAll('location[]');
+
+            const courses = subjects.map((subject, index) => ({
+                subject,
+                slot: slots[index],
+                location: locations[index]
+            }));
+
+            const schedule = {
+                "Is1stYear": is1stYear,
+                "SemStartDate": semStartDate,
+                "SemEndDate": semEndDate,
+                "Courses": courses
+            };
+            google.script.run.withSuccessHandler(SuccessHandler).AddTimeTableToCalendar(schedule);
+        }
+        function SuccessHandler() {
+            alert("Success!");
+        }
+    </script>
+</body>
+
+</html>
